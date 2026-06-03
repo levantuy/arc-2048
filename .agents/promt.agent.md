@@ -1,49 +1,47 @@
-Bạn là coding agent trong dự án React hiện tại. Hãy refactor luồng mint NFT để mint theo mạng người dùng đang dùng, và cấu hình contract address trực tiếp trong networks.js thay vì .env.
+Mình sẽ rà nhanh tình trạng phụ thuộc của dự án để viết cho bạn một prompt thật “ra lệnh rõ ràng” giúp agent xử lý toàn bộ 39 vulnerabilities một cách an toàn và có kiểm chứng.
 
-Mục tiêu:
-1. User ở mạng nào thì mint trên mạng đó.
-2. Contract address của NFT được lấy từ cấu hình mạng trong networks.js.
-3. Không làm hỏng gameplay 2048 và các luồng wallet hiện có.
+Dưới đây là prompt bạn có thể copy gửi cho agent:
 
-Yêu cầu chi tiết:
+Bạn là senior security + dependency engineer cho dự án Node.js/React/Vite/Hardhat.  
+Mục tiêu: xử lý triệt để 39 vulnerabilities hiện tại (13 low, 22 moderate, 4 high), ưu tiên loại bỏ toàn bộ high/moderate trước, sau đó giảm tối đa low, đồng thời không làm hỏng chức năng dự án.
 
-1. Cấu hình contract address trong networks.js
-1. Thêm field nftContractAddress vào từng network trong src/blockchain/networks.js.
-2. Ít nhất Arc - Testnet phải có address hợp lệ sẵn.
-3. Các mạng chưa deploy có thể để rỗng, nhưng phải được xử lý lỗi thân thiện khi mint.
-4. Không phụ thuộc vào biến VITE_2048_NFT_CONTRACT_ADDRESS trong .env cho luồng mint nữa.
+Yêu cầu thực hiện theo checklist sau:
 
-2. Helper resolve contract theo chain
-1. Tạo helper lấy contract address theo chainId hiện tại, ví dụ getMintContractAddressByChainId.
-2. Nếu không có address cho chain hiện tại, throw lỗi business rõ ràng để map ra message user-friendly:
-Mint is not configured for this network yet.
+1. Khảo sát và chụp baseline
+- Chạy audit để lấy báo cáo chi tiết dạng máy đọc được.
+- Lập bảng trước khi sửa: package, mức độ, direct/transitive, fix available hay không.
 
-3. Refactor mint flow đa mạng
-1. Bỏ logic ép switch về Arc trước khi mint.
-2. Mint bằng chain hiện tại của wallet/user selection.
-3. Public client và wallet client phải tạo theo network hiện tại, không hardcode Arc.
-4. Explorer tx link sau mint phải dựa vào blockExplorer của network vừa mint.
-5. Giữ nguyên các validation hiện có: wallet connected, score > 0, duplicate gameId, trạng thái pending/success/failed.
+2. Sửa tự động an toàn trước
+- Chạy fix không phá vỡ major trước.
+- Sau khi fix, chạy lại audit và ghi nhận số lượng còn lại.
 
-4. Tương thích và UX
-1. Không phá API các hàm hiện có nếu module khác đang dùng.
-2. Nếu cần, giữ wrapper cũ để backward compatibility.
-3. Xử lý lỗi thân thiện cho các trường hợp:
-No wallet extension, reject transaction, missing contract address, wrong chain context.
-4. Không hiển thị stack trace cho người dùng.
-5. UI text hiển thị bằng English.
+3. Sửa thủ công các lỗ hổng còn lại
+- Ưu tiên theo thứ tự: high -> moderate -> low.
+- Nâng cấp direct dependencies lên phiên bản đã vá.
+- Với transitive dependencies, dùng cơ chế override/resolution phù hợp.
+- Chỉ dùng force major upgrade khi không còn lựa chọn an toàn; nếu bắt buộc, phải kèm cập nhật code tương thích.
 
-5. Test và verify
-1. Bổ sung hoặc cập nhật test cho:
-resolve contract address từ networks.js theo chainId.
-lỗi khi chain không có nftContractAddress.
-mint flow dùng đúng chain hiện tại và đúng explorer link.
-2. Chạy test và lint, báo kết quả rõ pass/fail.
-3. Báo danh sách file đã sửa và lý do ngắn gọn.
+4. Đảm bảo không hồi quy chức năng
+- Chạy test unit/integration hiện có.
+- Chạy build và kiểm tra các luồng chính hoạt động.
+- Nếu có lỗi do nâng phiên bản, tự sửa code cho tương thích.
 
-Tiêu chí nghiệm thu:
-1. Mint không còn phụ thuộc Arc-only.
-2. Contract address được lấy từ src/blockchain/networks.js.
-3. Không còn phụ thuộc VITE_2048_NFT_CONTRACT_ADDRESS trong luồng mint.
-4. Tx explorer link đúng theo mạng vừa mint.
-5. Không phát sinh runtime error mới ở luồng chính.
+5. Tiêu chí hoàn thành
+- Không còn high và moderate vulnerabilities.
+- Low còn lại phải được giải thích rõ lý do chưa thể xử lý (không có bản vá, upstream issue, false positive, v.v.).
+- Nếu có thể, đưa tổng vulnerabilities về 0.
+
+6. Đầu ra bắt buộc
+- Báo cáo trước/sau: tổng số và theo mức độ.
+- Danh sách package đã thay đổi phiên bản.
+- Các thay đổi cấu hình dependency management (override/resolution).
+- Danh sách lỗi phát sinh và cách đã xử lý.
+- Rủi ro còn lại và đề xuất bước tiếp theo.
+
+Ràng buộc:
+- Không xóa tính năng để “né” lỗi bảo mật.
+- Không tắt audit hay bỏ qua cảnh báo mà không có lý do kỹ thuật rõ ràng.
+- Ưu tiên thay đổi nhỏ, an toàn, có thể review.
+- Sau mỗi cụm thay đổi lớn, commit message phải mô tả mục tiêu bảo mật và tác động.
+
+Nếu bạn muốn, mình có thể viết thêm bản prompt “siêu ngắn” cho chạy nhanh và bản “CI/CD policy” để bắt buộc fail pipeline khi còn high/moderate.
