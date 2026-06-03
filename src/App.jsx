@@ -241,6 +241,14 @@ const App = () => {
   }, [walletAccount, walletChainId, selectedNetworkId, selectedNetwork.currencyDecimals, selectedNetwork.currencySymbol]);
 
   const handleConnectWallet = async () => {
+    if (walletAccount) {
+      setWalletAccount("");
+      setWalletChainId(null);
+      setWalletNativeBalance("");
+      setWalletMessage("Wallet disconnected.");
+      return;
+    }
+
     try {
       setWalletMessage("");
       const account = await connectWallet();
@@ -416,7 +424,7 @@ const App = () => {
               className="text-sm font-semibold bg-indigo-700 hover:bg-indigo-600 rounded-md text-white py-2 px-3 transition duration-300 ease-in-out"
               onClick={handleConnectWallet}
             >
-              {walletAccount ? "Wallet Connected" : "Connect Wallet"}
+              {walletAccount ? "Disconnect Wallet" : "Connect Wallet"}
             </button>
             <button
               className="text-2xl font-semibold bg-gray-800 hover:bg-gray-700 rounded-md text-white py-2 px-3 transition duration-300 ease-in-out transform hover:scale-105"

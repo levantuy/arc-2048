@@ -1,3 +1,6 @@
+const SEPOLIA_RPC_URL =
+  import.meta.env.VITE_SEPOLIA_RPC_URL || "https://rpc.sepolia.org";
+
 const SUPPORTED_NETWORKS_BASE = [
   {
     id: 5042002,
@@ -27,7 +30,7 @@ const SUPPORTED_NETWORKS_BASE = [
     id: 11155111,
     name: "Sepolia",
     network: "sepolia",
-    rpcUrl: "https://sepolia.infura.io/v3/YOUR_INFURA_KEY",
+    rpcUrl: SEPOLIA_RPC_URL,
     blockExplorer: "https://sepolia.etherscan.io",
     currencyName: "Sepolia Ether",
     currencySymbol: "ETH",
