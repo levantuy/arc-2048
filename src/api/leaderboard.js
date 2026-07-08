@@ -1,4 +1,13 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? "http://localhost:3001" : "");
+
+function buildApiUrl(path) {
+  if (!API_BASE_URL) {
+    return path;
+  }
+
+  return `${API_BASE_URL.replace(/\/$/, "")}${path}`;
+}
 
 /**
  * Submit a game score to the leaderboard.
@@ -9,7 +18,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001
  */
 export async function submitScore({ walletAddress, score, gameId, duration, reachedMax }) {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/scores`, {
+    const res = await fetch(buildApiUrl("/api/scores"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ walletAddress, score, gameId, duration, reachedMax }),
@@ -36,7 +45,7 @@ export async function submitScore({ walletAddress, score, gameId, duration, reac
  */
 export async function fetchLeaderboard() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/leaderboard`);
+    const res = await fetch(buildApiUrl("/api/leaderboard"));
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));

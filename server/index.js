@@ -14,17 +14,25 @@ const PORT = process.env.PORT || 3001;
 // --- Middleware ---
 app.use(express.json());
 
-// CORS: allow localhost in development, same-origin in production
+// CORS: allow localhost and configured production domains.
+const configuredOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:4173",
   "http://localhost:3000",
+  "https://2048.learnjournal.site",
+  "https://www.2048.learnjournal.site",
+  ...configuredOrigins,
 ];
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. curl/Postman) only in dev
-      if (!origin && process.env.NODE_ENV !== "production") return callback(null, true);
+      // Allow requests with no origin (e.g. curl/Postman/server-to-server).
+      if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
       callback(new Error("Not allowed by CORS"));
     },
