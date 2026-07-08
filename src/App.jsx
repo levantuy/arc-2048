@@ -491,22 +491,29 @@ const App = () => {
                   </span>
                 </div>
                 <div className="arcade-chip arcade-chip--compact arcade-chip--network gap-3 flex-wrap">
-                  <span>
-                    <span className="arcade-chip__label">{HUD_LABELS.network}</span>
-                    <span className="arcade-chip__value block">{selectedNetwork.name}</span>
-                  </span>
-                  <select
-                    id="network-select"
-                    value={selectedNetworkId}
-                    onChange={handleNetworkChange}
-                    className="arcade-select min-w-0"
-                  >
-                    {SUPPORTED_NETWORKS.map((network) => (
-                      <option key={network.id} value={network.id}>
-                        {network.name}
-                      </option>
-                    ))}
-                  </select>
+                    <span>
+                      <span className="arcade-chip__label">{HUD_LABELS.network}</span>
+                      <span className="arcade-chip__value block">{selectedNetwork.name}</span>
+                    </span>
+                    <label className="arcade-network-picker" htmlFor="network-select">
+                      <span className="arcade-network-picker__hint">Switch chain</span>
+                      <div className="arcade-select-wrap">
+                        <select
+                          id="network-select"
+                          value={selectedNetworkId}
+                          onChange={handleNetworkChange}
+                          className="arcade-select arcade-select--network min-w-0"
+                          aria-label="Switch blockchain network"
+                        >
+                          {SUPPORTED_NETWORKS.map((network) => (
+                            <option key={network.id} value={network.id}>
+                              {network.name}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="arcade-select-wrap__chevron" aria-hidden="true">v</span>
+                      </div>
+                    </label>
                 </div>
                 <div className="arcade-chip arcade-chip--best">
                   <div className={walletStatusClass}>
