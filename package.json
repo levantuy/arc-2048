@@ -23,11 +23,16 @@
     "contract:deploy:arbitrum": "hardhat run deploy.js --network arbitrum",
     "contract:deploy:base": "hardhat run deploy.js --network base",
     "contract:deploy:polygon": "hardhat run deploy.js --network polygon",
-    "contract:deploy:optimism": "hardhat run deploy.js --network optimism"
+    "contract:deploy:optimism": "hardhat run deploy.js --network optimism",
+    "server": "node server/index.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "express": "^4.22.2",
+    "express-rate-limit": "^7.5.1",
+    "pg": "^8.22.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-icons": "^5.7.0",

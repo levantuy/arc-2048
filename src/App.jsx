@@ -26,6 +26,8 @@ import {
   getWalletProvider,
 } from "./blockchain/wallet";
 import { createGameSession, getGameDurationSeconds } from "./utils/gameSession";
+import { submitScore } from "./api/leaderboard";
+import Leaderboard from "./components/Leaderboard";
 
 const INITIAL_MINT_STATE = {
   status: "idle",
@@ -40,11 +42,18 @@ const shortenAddress = (address) => {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
+const HUD_LABELS = {
+  score: "Combo Score",
+  best: "High Score",
+  network: "Arcade Network",
+  wallet: "Player Wallet",
+};
+
 const App = () => {
   const [grid, setGrid] = useState(initializeGrid());
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(
-    () => localStorage.getItem("bestScore") || 0
+    () => Number(globalThis.localStorage?.getItem("bestScore") || 0)
   );
   const [newTiles, setNewTiles] = useState([]);
   const [mergedTiles, setMergedTiles] = useState([]);
@@ -59,10 +68,30 @@ const App = () => {
   const [walletMessage, setWalletMessage] = useState("");
   const [mintState, setMintState] = useState(INITIAL_MINT_STATE);
   const [mintedGameIds, setMintedGameIds] = useState({});
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const submittedGameIds = useRef(new Set());
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
   const gameEnded = gameOver || gameWon;
   const selectedNetwork = getNetworkById(selectedNetworkId) || ARC_NETWORK;
+
+  // Auto-submit score to leaderboard when game ends (fire-and-forget)
+  useEffect(() => {
+    if (!gameEnded) return;
+    if (!walletAccount) return;
+    if (score <= 0) return;
+    const gameId = gameSession.gameId;
+    if (submittedGameIds.current.has(gameId)) return;
+    submittedGameIds.current.add(gameId);
+    const duration = getGameDurationSeconds(gameSession.startedAt);
+    submitScore({
+      walletAddress: walletAccount,
+      score,
+      gameId,
+      duration,
+      reachedMax: gameWon,
+    });
+  }, [gameEnded, walletAccount, score, gameSession, gameWon]);
 
   const runMove = useCallback((direction) => {
     if (gameEnded) {
@@ -72,10 +101,15 @@ const App = () => {
     const { newGrid, newScore, newTiles, mergedTiles } = moveTiles(grid, direction);
 
     if (newGrid) {
+      const nextScore = score + newScore;
       setGrid(newGrid);
-      setScore((prevScore) => prevScore + newScore);
+      setScore(nextScore);
       setNewTiles(newTiles);
       setMergedTiles(mergedTiles);
+      if (nextScore > bestScore) {
+        setBestScore(nextScore);
+        globalThis.localStorage?.setItem("bestScore", String(nextScore));
+      }
       if (isGameOver(newGrid)) {
         setGameOver(true);
       }
@@ -83,7 +117,7 @@ const App = () => {
         setGameWon(true);
       }
     }
-  }, [gameEnded, grid]);
+  }, [gameEnded, grid, score, bestScore]);
 
   const handleKeyDown = useCallback((e) => {
     if (!e.key.startsWith("Arrow")) {
@@ -97,13 +131,6 @@ const App = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
-
-  useEffect(() => {
-    if (score > bestScore) {
-      setBestScore(score);
-      localStorage.setItem("bestScore", score);
-    }
-  }, [score, bestScore]);
 
   const handleNewGame = () => {
     setGrid(initializeGrid());
@@ -303,6 +330,13 @@ const App = () => {
 
     try {
       setMintState({ ...INITIAL_MINT_STATE, status: "waiting_wallet_confirm" });
+
+      // Auto-switch to selected network if wallet is on wrong network
+      const currentChainId = await getCurrentChainId();
+      if (currentChainId !== selectedNetworkId) {
+        await ensureNetwork(selectedNetwork);
+      }
+
       const chainId = await getCurrentChainId();
       setWalletChainId(chainId);
       if (getNetworkById(chainId)) {
@@ -365,107 +399,191 @@ const App = () => {
     mintState.status !== "waiting_wallet_confirm" &&
     mintState.status !== "pending_tx";
 
+  const wrongNetwork =
+    Boolean(walletAccount) &&
+    walletChainId !== null &&
+    walletChainId !== selectedNetworkId;
+
   const txExplorerLink = getTxExplorerLinkByChainId(
     mintState.txHash,
     mintState.chainId || walletChainId
   );
   const durationSeconds = getGameDurationSeconds(gameSession.startedAt);
   const popupTitle = gameWon ? "You Won!" : "Game Over";
+  const walletStatusLabel = walletAccount ? "Cabinet Online" : "Wallet Offline";
+  const walletStatusClass = walletAccount
+    ? "status-chip status-chip--success"
+    : "status-chip status-chip--warning";
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-900">
-      {!gameStarted ? (
-        <div className="flex flex-col items-center">
-          <h1 className="text-6xl font-bold mb-4 text-white drop-shadow-lg">
-            2048
-          </h1>
-          <button
-            className="text-2xl font-semibold bg-gray-800 hover:bg-gray-700 rounded-md text-white py-2 px-4 transition duration-300 ease-in-out transform hover:scale-105"
-            onClick={handleNewGame}
-          >
-            Start Game
-          </button>
-        </div>
-      ) : (
-        <>
-          <h1 className="text-6xl font-bold mb-4 text-white drop-shadow-lg">
-            2048
-          </h1>
-          <div className="flex mb-4 gap-3 flex-wrap items-center justify-center">
-            <div className="text-xl font-semibold bg-gray-800 rounded-md text-white py-2 px-3 shadow-lg">
-              Score: {score}
+    <div className="arcade-shell">
+      <div className="arcade-shell__inner">
+        {!gameStarted ? (
+          <div className="arcade-intro flex flex-col items-center gap-6 text-center">
+            <div className="space-y-4 max-w-3xl">
+              <span className="arcade-eyebrow">Insert Coin Optional</span>
+              <h1 className="arcade-title">2048</h1>
+              <p className="arcade-subtitle mx-auto">
+                Slide tiles, chase the chaos, and try not to let the board bully you.
+                Wallet minting, network switching, and leaderboard bragging are ready when you are.
+              </p>
             </div>
-            <div className="text-xl font-semibold bg-gray-800 rounded-md text-white py-2 px-3 shadow-lg">
-              Best: {bestScore}
+            <div className="flex flex-wrap gap-3 justify-center">
+              <div className="status-chip">
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--arcade-cyan)] animate-pulse" />
+                Arcade warm-up complete
+              </div>
+              <div className="status-chip">
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--arcade-amber)] animate-pulse" />
+                Swipe, stack, survive
+              </div>
             </div>
-            <div className="flex items-center gap-2 bg-gray-800 rounded-md py-2 px-3 shadow-lg">
-              <label htmlFor="network-select" className="text-xs text-gray-300 font-semibold">
-                Network
-              </label>
-              <select
-                id="network-select"
-                value={selectedNetworkId}
-                onChange={handleNetworkChange}
-                className="text-sm font-semibold rounded-md border border-slate-300 px-2 py-1"
-                style={{ color: "#0f172a", backgroundColor: "#f1f5f9", WebkitTextFillColor: "#0f172a" }}
-              >
-                {SUPPORTED_NETWORKS.map((network) => (
-                  <option
-                    key={network.id}
-                    value={network.id}
-                    style={{ color: "#0f172a", backgroundColor: "#f8fafc", WebkitTextFillColor: "#0f172a" }}
-                  >
-                    {network.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              className="text-sm font-semibold bg-indigo-700 hover:bg-indigo-600 rounded-md text-white py-2 px-3 transition duration-300 ease-in-out"
-              onClick={handleConnectWallet}
-            >
-              {walletAccount ? "Disconnect Wallet" : "Connect Wallet"}
-            </button>
-            <button
-              className="text-2xl font-semibold bg-gray-800 hover:bg-gray-700 rounded-md text-white py-2 px-3 transition duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleNewGame}
-            >
-              <IoMdRefresh />
+            <button className="arcade-button arcade-button--amber px-6 text-base sm:text-lg" onClick={handleNewGame}>
+              Start Game
             </button>
           </div>
-          {walletAccount && (
-            <div className="w-full max-w-md bg-gray-800 rounded-md px-4 py-3 mb-3 text-sm text-gray-100 shadow-lg">
-              <p className="mb-1" title={walletAccount}>
-                Address: {shortenAddress(walletAccount)}
-              </p>
-              <p className="mb-1">Native Balance: {walletNativeBalance || `0 ${selectedNetwork.currencySymbol}`}</p>
-              <p className="text-xs text-gray-300">
-                Active Chain: {selectedNetwork.name}
-                {walletChainId ? ` (#${walletChainId})` : ""}
-              </p>
-            </div>
-          )}
-          {walletMessage && (
-            <p className="text-sm text-amber-300 mb-3">{walletMessage}</p>
-          )}
-          <Board grid={grid} newTiles={newTiles} mergedTiles={mergedTiles} />
-          {gameEnded && (
-            <GameOverPopup
-              title={popupTitle}
-              score={score}
-              durationSeconds={durationSeconds}
-              gameId={gameSession.gameId}
-              account={walletAccount}
-              canMint={canMint}
-              mintState={mintState}
-              txExplorerLink={txExplorerLink}
-              onConnectWallet={handleConnectWallet}
-              onMintResult={handleMintResult}
-              onNewGame={handleNewGame}
-            />
-          )}
-        </>
-      )}
+        ) : (
+          <div className="space-y-4">
+            <header className="arcade-cabinet space-y-5">
+              <div className="arcade-toolbar gap-4">
+                <div className="space-y-2 max-w-3xl">
+                  <span className="arcade-eyebrow">Neon Snack Mode</span>
+                  <h1 className="arcade-title text-left">2048</h1>
+                  <p className="arcade-subtitle">
+                    A neon cabinet for stacking tiles, flexing scores, and sending your best run on-chain.
+                  </p>
+                </div>
+                <div className="arcade-hud-row">
+                  <button
+                    className="arcade-button arcade-button--ghost"
+                    onClick={handleConnectWallet}
+                  >
+                    {walletAccount ? "Disconnect Wallet" : "Connect Wallet"}
+                  </button>
+                  <button
+                    className="arcade-button arcade-button--amber"
+                    onClick={() => setShowLeaderboard(true)}
+                  >
+                    🏆 Leaderboard
+                  </button>
+                  <button
+                    className="arcade-button arcade-button--cyan arcade-icon-button"
+                    onClick={handleNewGame}
+                    title="New Game"
+                    aria-label="New Game"
+                  >
+                    <IoMdRefresh />
+                  </button>
+                </div>
+              </div>
+
+              <div className="arcade-toolbar gap-4">
+                <div className="arcade-chip arcade-chip--score">
+                  <span>
+                    <span className="arcade-chip__label">{HUD_LABELS.score}</span>
+                    <span className="arcade-chip__value block">{score.toLocaleString()}</span>
+                  </span>
+                </div>
+                <div className="arcade-chip arcade-chip--best">
+                  <span>
+                    <span className="arcade-chip__label">{HUD_LABELS.best}</span>
+                    <span className="arcade-chip__value block">{bestScore.toLocaleString()}</span>
+                  </span>
+                </div>
+                <div className="arcade-chip arcade-chip--compact arcade-chip--network gap-3 flex-wrap">
+                  <span>
+                    <span className="arcade-chip__label">{HUD_LABELS.network}</span>
+                    <span className="arcade-chip__value block">{selectedNetwork.name}</span>
+                  </span>
+                  <select
+                    id="network-select"
+                    value={selectedNetworkId}
+                    onChange={handleNetworkChange}
+                    className="arcade-select min-w-0"
+                  >
+                    {SUPPORTED_NETWORKS.map((network) => (
+                      <option key={network.id} value={network.id}>
+                        {network.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="arcade-chip arcade-chip--best">
+                  <div className={walletStatusClass}>
+                    <span className="w-2.5 h-2.5 rounded-full bg-current animate-pulse" />
+                    {walletStatusLabel}
+                  </div>
+                  {walletMessage && (
+                    <div className="status-chip status-chip--warning max-w-full text-left">
+                      {walletMessage}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {walletAccount && (
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div className="arcade-panel space-y-1 md:col-span-1">
+                    <p className="arcade-chip__label">{HUD_LABELS.wallet}</p>
+                    <p className="arcade-chip__value text-sm md:text-base" title={walletAccount}>
+                      {shortenAddress(walletAccount)}
+                    </p>
+                  </div>
+                  <div className="arcade-panel space-y-1 md:col-span-1">
+                    <p className="arcade-chip__label">Native Balance</p>
+                    <p className="arcade-chip__value text-sm md:text-base">
+                      {walletNativeBalance || `0 ${selectedNetwork.currencySymbol}`}
+                    </p>
+                  </div>
+                  <div className="arcade-panel space-y-1 md:col-span-1">
+                    <p className="arcade-chip__label">Active Chain</p>
+                    <p className="arcade-chip__value text-sm md:text-base">
+                      {selectedNetwork.name}
+                      {walletChainId ? ` (#${walletChainId})` : ""}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </header>
+
+            <main className="arcade-cabinet space-y-4">
+              <div className="arcade-board-wrap">
+                <Board grid={grid} newTiles={newTiles} mergedTiles={mergedTiles} />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[var(--arcade-muted)]">
+                <p>
+                  Slide the board. Stack the chaos. Try not to let the tiles think they run the place.
+                </p>
+                <p>Game session: {gameSession.gameId.slice(0, 10)}...</p>
+              </div>
+            </main>
+
+            {showLeaderboard && (
+              <Leaderboard
+                currentAccount={walletAccount}
+                onClose={() => setShowLeaderboard(false)}
+              />
+            )}
+            {gameEnded && (
+              <GameOverPopup
+                title={popupTitle}
+                score={score}
+                durationSeconds={durationSeconds}
+                gameId={gameSession.gameId}
+                account={walletAccount}
+                canMint={canMint}
+                mintState={mintState}
+                txExplorerLink={txExplorerLink}
+                wrongNetwork={wrongNetwork}
+                selectedNetworkName={selectedNetwork.name}
+                onConnectWallet={handleConnectWallet}
+                onMintResult={handleMintResult}
+                onNewGame={handleNewGame}
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
