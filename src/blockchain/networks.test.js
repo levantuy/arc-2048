@@ -13,7 +13,7 @@ describe("network mint configuration", () => {
   });
 
   it("throws a clear business error when network has no nft contract address", () => {
-    expect(() => getMintContractAddressByChainId(11155111)).toThrow(
+    expect(() => getMintContractAddressByChainId(421614)).toThrow(
       "Mint is not configured for this network yet."
     );
   });

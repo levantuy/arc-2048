@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import hre from "hardhat";
+import { network } from "hardhat";
 
-const { ethers } = hre;
+const { ethers } = await network.create();
 
 describe("Game2048ResultNFT", function () {
   async function deployFixture() {

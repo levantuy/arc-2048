@@ -1,5 +1,11 @@
-import "@nomicfoundation/hardhat-toolbox";
+import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers";
+import hardhatEthersChaiMatchersPlugin from "@nomicfoundation/hardhat-ethers-chai-matchers";
+import hardhatMochaPlugin from "@nomicfoundation/hardhat-mocha";
 import dotenv from "dotenv";
+import { createRequire } from "module";
+import { defineConfig } from "hardhat/config";
+
+const require = createRequire(import.meta.url);
 
 dotenv.config();
 
@@ -22,69 +28,94 @@ const OPTIMISM_RPC_URL = process.env.OPTIMISM_RPC_URL || "https://mainnet.optimi
 
 const accounts = PRIVATE_KEY ? [PRIVATE_KEY] : [];
 
-/** @type import('hardhat/config').HardhatUserConfig */
-const config = {
+const config = defineConfig({
+  plugins: [hardhatEthersPlugin, hardhatEthersChaiMatchersPlugin, hardhatMochaPlugin],
   solidity: {
-    version: "0.8.24",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
+    profiles: {
+      default: {
+        version: "0.8.35",
+        path: require.resolve("solc/soljson.js"),
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
       },
     },
   },
   networks: {
     arcTestnet: {
+      type: "http",
+      chainType: "l1",
       url: ARC_RPC_URL,
       chainId: 5042002,
       accounts,
     },
     optimismSepolia: {
+      type: "http",
+      chainType: "l1",
       url: OPTIMISM_SEPOLIA_RPC_URL,
       chainId: 11155420,
       accounts,
     },
     sepolia: {
+      type: "http",
+      chainType: "l1",
       url: SEPOLIA_RPC_URL,
       chainId: 11155111,
       accounts,
     },
     arbitrumSepolia: {
+      type: "http",
+      chainType: "l1",
       url: ARBITRUM_SEPOLIA_RPC_URL,
       chainId: 421614,
       accounts,
     },
     baseSepolia: {
+      type: "http",
+      chainType: "l1",
       url: BASE_SEPOLIA_RPC_URL,
       chainId: 84532,
       accounts,
     },
     polygonAmoy: {
+      type: "http",
+      chainType: "l1",
       url: POLYGON_AMOY_RPC_URL,
       chainId: 80002,
       accounts,
     },
     arbitrum: {
+      type: "http",
+      chainType: "l1",
       url: ARBITRUM_RPC_URL,
       chainId: 42161,
       accounts,
     },
     base: {
+      type: "http",
+      chainType: "l1",
       url: BASE_RPC_URL,
       chainId: 8453,
       accounts,
     },
     polygon: {
+      type: "http",
+      chainType: "l1",
       url: POLYGON_RPC_URL,
       chainId: 137,
       accounts,
     },
     optimism: {
+      type: "http",
+      chainType: "l1",
       url: OPTIMISM_RPC_URL,
       chainId: 10,
       accounts,
     },
   },
-};
+});
 
 export default config;

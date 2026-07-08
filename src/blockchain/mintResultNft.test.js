@@ -77,7 +77,7 @@ describe("mintResultNft multi-network flow", () => {
 
   it("fails with a clear business error when current chain has no mint contract configured", async () => {
     const provider = {
-      request: vi.fn().mockResolvedValue("0xaa36a7"),
+      request: vi.fn().mockResolvedValue("0x66eee"),
     };
     getWalletProvider.mockReturnValue(provider);
 
