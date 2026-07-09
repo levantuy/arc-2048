@@ -8,7 +8,7 @@ const socialLinks = [
 
 export default function Footer() {
   return (
-    <footer className="app-footer fixed bottom-0 inset-x-0 z-30 text-sm text-center py-4 transition-colors duration-300 border-t border-gray-200">
+    <footer className="app-footer z-30 text-sm text-center py-4 transition-colors duration-300 border-t border-gray-200 md:fixed md:bottom-0 md:inset-x-0">
       <div className="mx-auto flex w-full max-w-8xl flex-col gap-2 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
         <p>(c) 2026 Learn Journal. All rights reserved.</p>
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">

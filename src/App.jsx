@@ -30,6 +30,8 @@ import { submitScore } from "./api/leaderboard";
 import Leaderboard from "./components/Leaderboard";
 import Footer from "./components/Footer";
 
+const MOBILE_BREAKPOINT = 768;
+
 const INITIAL_MINT_STATE = {
   status: "idle",
   txHash: "",
@@ -70,6 +72,10 @@ const App = () => {
   const [mintState, setMintState] = useState(INITIAL_MINT_STATE);
   const [mintedGameIds, setMintedGameIds] = useState({});
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(
+    () => window.innerWidth <= MOBILE_BREAKPOINT
+  );
+  const [isMobileHeaderOpen, setIsMobileHeaderOpen] = useState(false);
   const submittedGameIds = useRef(new Set());
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
@@ -132,6 +138,32 @@ const App = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
+
+  useEffect(() => {
+    const updateViewportMode = () => {
+      setIsMobileViewport(window.innerWidth <= MOBILE_BREAKPOINT);
+    };
+
+    updateViewportMode();
+    window.addEventListener("resize", updateViewportMode);
+    window.addEventListener("orientationchange", updateViewportMode);
+
+    return () => {
+      window.removeEventListener("resize", updateViewportMode);
+      window.removeEventListener("orientationchange", updateViewportMode);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!gameStarted) return;
+
+    if (isMobileViewport) {
+      setIsMobileHeaderOpen(false);
+      return;
+    }
+
+    setIsMobileHeaderOpen(true);
+  }, [gameStarted, isMobileViewport]);
 
   const handleNewGame = () => {
     setGrid(initializeGrid());
@@ -415,6 +447,8 @@ const App = () => {
   const walletStatusClass = walletAccount
     ? "status-chip status-chip--success"
     : "status-chip status-chip--warning";
+  const shouldShowHeaderContent = !isMobileViewport || isMobileHeaderOpen;
+  const mobileToggleLabel = isMobileHeaderOpen ? "Hide Header" : "Show Header";
 
   return (
     <div className="arcade-shell">
@@ -444,8 +478,30 @@ const App = () => {
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
-            <header className="arcade-cabinet space-y-5">
+          <div className="arcade-game-layout space-y-4">
+            {isMobileViewport && (
+              <div className="arcade-mobile-header-toggle-wrap">
+                <button
+                  type="button"
+                  className="arcade-button arcade-button--ghost arcade-mobile-header-toggle"
+                  onClick={() => setIsMobileHeaderOpen((prev) => !prev)}
+                  aria-expanded={isMobileHeaderOpen}
+                  aria-controls="game-header-content"
+                  aria-label={mobileToggleLabel}
+                >
+                  {mobileToggleLabel}
+                </button>
+              </div>
+            )}
+
+            <header
+              className={`arcade-cabinet arcade-game-header space-y-5 ${shouldShowHeaderContent ? "is-open" : "is-collapsed"}`}
+            >
+              <div
+                id="game-header-content"
+                className="arcade-game-header__inner"
+                aria-hidden={!shouldShowHeaderContent}
+              >
               <div className="arcade-toolbar gap-4">
                 <div className="space-y-2 max-w-3xl">
                   <span className="arcade-eyebrow">Neon Snack Mode</span>
@@ -552,6 +608,7 @@ const App = () => {
                   </div>
                 </div>
               )}
+              </div>
             </header>
 
             <main className="arcade-cabinet space-y-4">
@@ -572,27 +629,27 @@ const App = () => {
                 onClose={() => setShowLeaderboard(false)}
               />
             )}
-            {gameEnded && (
-              <GameOverPopup
-                title={popupTitle}
-                score={score}
-                durationSeconds={durationSeconds}
-                gameId={gameSession.gameId}
-                account={walletAccount}
-                canMint={canMint}
-                mintState={mintState}
-                txExplorerLink={txExplorerLink}
-                wrongNetwork={wrongNetwork}
-                selectedNetworkName={selectedNetwork.name}
-                onConnectWallet={handleConnectWallet}
-                onMintResult={handleMintResult}
-                onNewGame={handleNewGame}
-              />
-            )}
           </div>
         )}
       </div>
       <Footer />
+      {gameEnded && (
+        <GameOverPopup
+          title={popupTitle}
+          score={score}
+          durationSeconds={durationSeconds}
+          gameId={gameSession.gameId}
+          account={walletAccount}
+          canMint={canMint}
+          mintState={mintState}
+          txExplorerLink={txExplorerLink}
+          wrongNetwork={wrongNetwork}
+          selectedNetworkName={selectedNetwork.name}
+          onConnectWallet={handleConnectWallet}
+          onMintResult={handleMintResult}
+          onNewGame={handleNewGame}
+        />
+      )}
     </div>
   );
 };
