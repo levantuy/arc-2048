@@ -86,6 +86,7 @@ const App = () => {
   const submittedGameIds = useRef(new Set());
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
+  const boardTouchAreaRef = useRef(null);
   const gameEnded = gameOver || gameWon;
   const selectedNetwork = getNetworkById(selectedNetworkId) || ARC_NETWORK;
 
@@ -190,14 +191,20 @@ const App = () => {
   }, [runMove]);
 
   useEffect(() => {
+    const touchArea = boardTouchAreaRef.current;
+    if (!touchArea) {
+      return;
+    }
+
+    const SWIPE_THRESHOLD_PX = 24;
+
     const handleTouchStart = (e) => {
       touchStartX.current = e.touches[0].clientX;
       touchStartY.current = e.touches[0].clientY;
     };
 
     const handleTouchMove = (e) => {
-      e.preventDefault();
-      if (!touchStartX.current || !touchStartY.current) {
+      if (touchStartX.current === null || touchStartY.current === null) {
         return;
       }
 
@@ -206,6 +213,16 @@ const App = () => {
 
       const deltaX = touchStartX.current - touchEndX;
       const deltaY = touchStartY.current - touchEndY;
+
+      if (
+        Math.abs(deltaX) < SWIPE_THRESHOLD_PX &&
+        Math.abs(deltaY) < SWIPE_THRESHOLD_PX
+      ) {
+        return;
+      }
+
+      // Prevent page scroll only when a swipe gesture is detected on the board.
+      e.preventDefault();
 
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
         if (deltaX > 0) {
@@ -225,12 +242,21 @@ const App = () => {
       touchStartY.current = null;
     };
 
-    window.addEventListener("touchstart", handleTouchStart);
-    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    const resetTouch = () => {
+      touchStartX.current = null;
+      touchStartY.current = null;
+    };
+
+    touchArea.addEventListener("touchstart", handleTouchStart, { passive: true });
+    touchArea.addEventListener("touchmove", handleTouchMove, { passive: false });
+    touchArea.addEventListener("touchend", resetTouch, { passive: true });
+    touchArea.addEventListener("touchcancel", resetTouch, { passive: true });
 
     return () => {
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchmove", handleTouchMove);
+      touchArea.removeEventListener("touchstart", handleTouchStart);
+      touchArea.removeEventListener("touchmove", handleTouchMove);
+      touchArea.removeEventListener("touchend", resetTouch);
+      touchArea.removeEventListener("touchcancel", resetTouch);
     };
   }, [handleSwipe]);
 
@@ -619,7 +645,7 @@ const App = () => {
             </header>
 
             <main className="arcade-cabinet space-y-4">
-              <div className="arcade-board-wrap">
+              <div ref={boardTouchAreaRef} className="arcade-board-wrap">
                 <Board grid={grid} newTiles={newTiles} mergedTiles={mergedTiles} />
               </div>
 

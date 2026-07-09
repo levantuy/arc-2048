@@ -1035,6 +1035,12 @@ a:focus-visible {
 		pointer-events: auto;
 	}
 	.arcade-shell { padding: 0.85rem; }
+	.arcade-shell {
+		height: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
+		-webkit-overflow-scrolling: touch;
+	}
 	.arcade-toolbar,
 	.arcade-hud-row,
 	.arcade-action-row { justify-content: center; }
