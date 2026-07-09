@@ -2,6 +2,43 @@ import { ARC_CHAIN_CONFIG, ARC_CHAIN_FOR_WALLET } from "./arcConfig";
 import { formatUnits } from "viem";
 import { toWalletChainParams } from "./networks";
 
+const METAMASK_DAPP_DEEPLINK_BASE = "https://metamask.app.link/dapp/";
+
+const isMobileDevice = () => {
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+
+  const userAgent = navigator.userAgent || navigator.vendor || "";
+  return /android|iphone|ipad|ipod/i.test(userAgent);
+};
+
+const getMetaMaskDeepLink = (dappUrl) => {
+  const fallbackUrl =
+    typeof window !== "undefined" && window.location?.href
+      ? window.location.href
+      : "";
+  const targetUrl = String(dappUrl || fallbackUrl).replace(/^https?:\/\//i, "");
+  return `${METAMASK_DAPP_DEEPLINK_BASE}${targetUrl}`;
+};
+
+const getInjectedProvider = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const { ethereum } = window;
+  if (!ethereum) {
+    return null;
+  }
+
+  if (Array.isArray(ethereum.providers) && ethereum.providers.length > 0) {
+    return ethereum.providers.find((provider) => provider?.isMetaMask) || ethereum.providers[0];
+  }
+
+  return ethereum;
+};
+
 export class WalletUnavailableError extends Error {
   constructor() {
     super("No EVM wallet found. Please install MetaMask or another EVM wallet.");
@@ -9,11 +46,20 @@ export class WalletUnavailableError extends Error {
   }
 }
 
+export class WalletRedirectError extends Error {
+  constructor(deepLink) {
+    super("Redirecting to MetaMask mobile app.");
+    this.name = "WalletRedirectError";
+    this.deepLink = deepLink;
+  }
+}
+
 export const getWalletProvider = () => {
-  if (!window.ethereum) {
+  const provider = getInjectedProvider();
+  if (!provider) {
     throw new WalletUnavailableError();
   }
-  return window.ethereum;
+  return provider;
 };
 
 export const getCurrentAccount = async () => {
@@ -29,9 +75,25 @@ export const getCurrentChainId = async () => {
 };
 
 export const connectWallet = async () => {
-  const provider = getWalletProvider();
-  const accounts = await provider.request({ method: "eth_requestAccounts" });
-  return accounts[0] || "";
+  try {
+    const provider = getWalletProvider();
+    const accounts = await provider.request({ method: "eth_requestAccounts" });
+    return accounts[0] || "";
+  } catch (error) {
+    if (error?.name === "WalletUnavailableError" && isMobileDevice()) {
+      const deepLink = getMetaMaskDeepLink();
+      if (typeof window !== "undefined" && typeof window.location?.assign === "function") {
+        try {
+          window.location.assign(deepLink);
+        } catch {
+          // Ignore redirect errors in restricted runtimes (e.g. test environments).
+        }
+      }
+      throw new WalletRedirectError(deepLink);
+    }
+
+    throw error;
+  }
 };
 
 export const switchToNetwork = async (network) => {

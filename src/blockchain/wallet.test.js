@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  connectWallet,
   ensureNetwork,
   formatNativeBalance,
   getNativeBalance,
@@ -120,5 +121,28 @@ describe("wallet helpers", () => {
       params: [{ chainId: "0x13882" }],
     });
     expect(request).toHaveBeenNthCalledWith(3, { method: "eth_chainId" });
+  });
+
+  it("redirects to MetaMask app when connecting on mobile without injected provider", async () => {
+    window.ethereum = undefined;
+    Object.defineProperty(window.navigator, "userAgent", {
+      value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
+      configurable: true,
+    });
+
+    await expect(connectWallet()).rejects.toMatchObject({
+      name: "WalletRedirectError",
+      deepLink: expect.stringContaining("https://metamask.app.link/dapp/"),
+    });
+  });
+
+  it("throws wallet unavailable error on desktop without provider", async () => {
+    window.ethereum = undefined;
+    Object.defineProperty(window.navigator, "userAgent", {
+      value: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      configurable: true,
+    });
+
+    await expect(connectWallet()).rejects.toMatchObject({ name: "WalletUnavailableError" });
   });
 });

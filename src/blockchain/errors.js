@@ -15,6 +15,10 @@ const hasMessage = (error, target) => {
 export const toUserFacingWalletError = (error) => {
   if (!error) return "Unknown wallet error.";
 
+  if (error?.name === "WalletRedirectError") {
+    return `MetaMask app is opening for wallet connection. If it does not open, use this link: ${error.deepLink}`;
+  }
+
   if (error?.name === "WalletUnavailableError") {
     return "No wallet extension found. Please install MetaMask or another EVM wallet.";
   }
