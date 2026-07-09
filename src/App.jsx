@@ -28,6 +28,7 @@ import {
 import { createGameSession, getGameDurationSeconds } from "./utils/gameSession";
 import { submitScore } from "./api/leaderboard";
 import Leaderboard from "./components/Leaderboard";
+import Footer from "./components/Footer";
 
 const INITIAL_MINT_STATE = {
   status: "idle",
@@ -591,6 +592,7 @@ const App = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
