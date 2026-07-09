@@ -1,7 +1,8 @@
-import hre from "hardhat";
+import { network } from "hardhat";
 
 async function main() {
-  const factory = await hre.ethers.getContractFactory("Game2048ResultNFT");
+  const { ethers } = await network.getOrCreate();
+  const factory = await ethers.getContractFactory("Game2048ResultNFT");
   const contract = await factory.deploy();
   await contract.waitForDeployment();
 

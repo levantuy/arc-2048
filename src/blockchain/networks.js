@@ -1,3 +1,5 @@
+import { GAME_2048_RESULT_NFT_ADDRESS } from "./contracts/game2048ResultNft";
+
 const SEPOLIA_RPC_URL =
   import.meta.env.VITE_SEPOLIA_RPC_URL || "https://rpc.sepolia.org";
 
@@ -11,7 +13,7 @@ const SUPPORTED_NETWORKS_BASE = [
     currencyName: "ARC",
     currencySymbol: "ARC",
     currencyDecimals: 18,
-    nftContractAddress: "0x1c0f5a1628337270D20EeE7aAeBb63Bdf0254CFa",
+    nftContractAddress: "0x81699F9516123a33b3f57EA2944A1cCBd7bC17ae",
     testnet: true,
   },
   {
@@ -23,7 +25,7 @@ const SUPPORTED_NETWORKS_BASE = [
     currencyName: "Sepolia Ether",
     currencySymbol: "ETH",
     currencyDecimals: 18,
-    nftContractAddress: "0x804FC259e0c738882D62245996CCe0Bbd3634b6f",
+    nftContractAddress: "0xEdB581AEBBad5553c24898E2F64F790e17927326",
     testnet: true,
   },
   {
@@ -35,7 +37,7 @@ const SUPPORTED_NETWORKS_BASE = [
     currencyName: "Sepolia Ether",
     currencySymbol: "ETH",
     currencyDecimals: 18,
-    nftContractAddress: "0xF9bf82bfb8bBa3f41FAc0301c2eFaF483f1391C4",
+    nftContractAddress: "0x716077DB2A5ec3689dDf45EE3C64CB9160abCa2B",
     testnet: true,
   },
   {
@@ -59,7 +61,7 @@ const SUPPORTED_NETWORKS_BASE = [
     currencyName: "Sepolia Ether",
     currencySymbol: "ETH",
     currencyDecimals: 18,
-    nftContractAddress: "0xDf0e260593f5d073Cf87299E8925412E26E07b4B",
+    nftContractAddress: "0x95b8b2c35525aF17dA88DC74665ee0787d3D16D0",
     testnet: true,
   },
   {
@@ -71,7 +73,7 @@ const SUPPORTED_NETWORKS_BASE = [
     currencyName: "MATIC",
     currencySymbol: "MATIC",
     currencyDecimals: 18,
-    nftContractAddress: "0xEdB581AEBBad5553c24898E2F64F790e17927326",
+    nftContractAddress: "0x95bfa7d286B6720ca7dd097D60Ae289C3c740939",
     testnet: true,
   },
   {
@@ -83,7 +85,7 @@ const SUPPORTED_NETWORKS_BASE = [
     currencyName: "Ether",
     currencySymbol: "ETH",
     currencyDecimals: 18,
-    nftContractAddress: "0x95Fa1AE910eA3A234F8fEd7F41bA7e2A6A365EA8",
+    nftContractAddress: "0x12FCf0B1AE124737dD47F584bcC66B865Af2666D",
     testnet: false,
   },
   {
@@ -95,7 +97,7 @@ const SUPPORTED_NETWORKS_BASE = [
     currencyName: "Ether",
     currencySymbol: "ETH",
     currencyDecimals: 18,
-    nftContractAddress: "0x5B6A855D9346D1b8c9aB531bAb4728949fAB13C7",
+    nftContractAddress: "0x0b65b241B7D91f8f41Ae31784288bcC5636431DB",
     testnet: false,
   },
   {
@@ -140,6 +142,7 @@ const getArcNetworkWithEnvOverrides = () => {
     name: import.meta.env.VITE_ARC_CHAIN_NAME || arcFromList.name,
     rpcUrl: import.meta.env.VITE_ARC_RPC_URL || arcFromList.rpcUrl,
     blockExplorer: import.meta.env.VITE_ARC_EXPLORER_URL || arcFromList.blockExplorer,
+    nftContractAddress: GAME_2048_RESULT_NFT_ADDRESS || arcFromList.nftContractAddress,
   };
 };
 

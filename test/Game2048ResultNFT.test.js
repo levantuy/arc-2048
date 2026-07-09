@@ -58,11 +58,22 @@ describe("Game2048ResultNFT", function () {
     expect(metadata).to.have.property("name");
     expect(metadata).to.have.property("description");
     expect(metadata).to.have.property("image");
+    expect(metadata.image.startsWith("data:image/svg+xml;base64,")).to.equal(true);
     expect(metadata.playerAddress.toLowerCase()).to.equal(player.address.toLowerCase());
     expect(metadata.score).to.equal(4096);
     expect(metadata.durationSeconds).to.equal(600);
     expect(metadata.gameId).to.equal("game-3");
     expect(metadata.playedAt).to.equal(playedAt);
+
+    const imageRaw = metadata.image.replace("data:image/svg+xml;base64,", "");
+    const svg = Buffer.from(imageRaw, "base64").toString("utf8");
+    const shortAddress = `${player.address.toLowerCase().slice(0, 6)}...${player.address.toLowerCase().slice(-4)}`;
+
+    expect(svg).to.include("2048 RESULT");
+    expect(svg).to.include(">4096<");
+    expect(svg).to.include("DURATION  600s");
+    expect(svg).to.include(`PLAYER  ${shortAddress}`);
+    expect(svg).to.include(`PLAYED AT  ${playedAt}`);
 
     const traitTypes = metadata.attributes.map((attr) => attr.trait_type);
     expect(traitTypes).to.include.members(["Score", "Duration", "GameId", "PlayedAt"]);
