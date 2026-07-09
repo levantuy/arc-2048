@@ -52,6 +52,13 @@ const HUD_LABELS = {
   wallet: "Player Wallet",
 };
 
+const MOBILE_CONTROLS = [
+  { direction: "up", label: "Up", icon: "^" },
+  { direction: "left", label: "Left", icon: "<" },
+  { direction: "down", label: "Down", icon: "v" },
+  { direction: "right", label: "Right", icon: ">" },
+];
+
 const App = () => {
   const [grid, setGrid] = useState(initializeGrid());
   const [score, setScore] = useState(0);
@@ -615,6 +622,24 @@ const App = () => {
               <div className="arcade-board-wrap">
                 <Board grid={grid} newTiles={newTiles} mergedTiles={mergedTiles} />
               </div>
+
+              {isMobileViewport && (
+                <div className="arcade-mobile-controls" role="group" aria-label="Move tiles">
+                  {MOBILE_CONTROLS.map((control) => (
+                    <button
+                      key={control.direction}
+                      type="button"
+                      className="arcade-mobile-controls__button"
+                      onClick={() => runMove(control.direction)}
+                      disabled={gameEnded}
+                      aria-label={`Move ${control.label}`}
+                    >
+                      {control.icon}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[var(--arcade-muted)]">
                 <p>
                   Slide the board. Stack the chaos. Try not to let the tiles think they run the place.
