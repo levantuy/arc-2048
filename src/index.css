@@ -955,7 +955,7 @@ a:focus-visible {
 	transition: opacity 160ms ease, transform 200ms ease;
 }
 
-.arcade-mobile-controls {
+.arcade-mobile-dpad {
 	display: none;
 }
 
@@ -1041,6 +1041,10 @@ a:focus-visible {
 		overflow-x: hidden;
 		-webkit-overflow-scrolling: touch;
 	}
+	.arcade-game-layout {
+		position: relative;
+		padding-bottom: calc(14.5rem + env(safe-area-inset-bottom));
+	}
 	.arcade-toolbar,
 	.arcade-hud-row,
 	.arcade-action-row { justify-content: center; }
@@ -1050,44 +1054,95 @@ a:focus-visible {
 	.arcade-select { width: 100%; }
 	.arcade-button { width: 100%; }
 	.arcade-icon-button { width: 100%; }
-	.arcade-mobile-controls {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		grid-template-areas:
-			"up up up"
-			"left down right";
-		gap: 0.45rem;
-		max-width: min(100%, 20rem);
-		margin: 0 auto;
+	.arcade-mobile-dpad {
+		--dpad-button-size: clamp(4.1rem, 10.5vw, 4.7rem);
+		--dpad-gap: clamp(0.35rem, 1vw, 0.55rem);
+		position: fixed;
+		left: max(0.85rem, env(safe-area-inset-left));
+		bottom: calc(1rem + env(safe-area-inset-bottom));
+		z-index: 34;
+		pointer-events: none;
 	}
-	.arcade-mobile-controls__button {
+	.arcade-mobile-dpad__grid {
+		display: grid;
+		grid-template-columns: repeat(3, var(--dpad-button-size));
+		grid-template-rows: repeat(3, var(--dpad-button-size));
+		grid-template-areas:
+			"empty-up up empty-right"
+			"left center right"
+			"empty-left down empty-down";
+		gap: var(--dpad-gap);
+		padding: clamp(0.45rem, 1.6vw, 0.7rem);
+		border-radius: 10px;
+		background: linear-gradient(180deg, rgba(6, 12, 28, 0.08), rgba(5, 10, 24, 0.3));
+		backdrop-filter: blur(4px);
+		box-shadow: 0 16px 26px rgba(0, 0, 0, 0.2);
+		pointer-events: auto;
+		touch-action: none;
+		user-select: none;
+	}
+	.arcade-mobile-dpad__button {
+		position: relative;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 2.6rem;
-		border: 1px solid rgba(40, 230, 255, 0.28);
-		border-radius: 10px;
-		background: linear-gradient(180deg, rgba(12, 24, 52, 0.95), rgba(8, 15, 32, 0.95));
-		color: #f4fbff;
-		font-size: 1.05rem;
-		font-weight: 900;
-		box-shadow: 0 10px 20px rgba(0, 0, 0, 0.24);
-		user-select: none;
+		width: var(--dpad-button-size);
+		height: var(--dpad-button-size);
+		border-radius: 22px;
+		border: 1px solid rgba(255, 255, 255, 0.32);
+		background:
+			radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 56%),
+			linear-gradient(180deg, rgba(21, 35, 70, 0.78), rgba(9, 17, 37, 0.86));
+		color: rgba(246, 251, 255, 0.95);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.24),
+			0 10px 20px rgba(0, 0, 0, 0.32),
+			0 0 0 1px rgba(40, 230, 255, 0.16);
+		opacity: 0.72;
+		overflow: hidden;
+		will-change: transform, opacity;
+		transform: translateZ(0);
 	}
-	.arcade-mobile-controls__button:hover {
-		transform: translateY(-1px);
+	.arcade-mobile-dpad__button::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(circle, rgba(40, 230, 255, 0.26), rgba(40, 230, 255, 0) 64%);
+		opacity: 0;
+		transform: scale(0.65);
+		transition: opacity 140ms ease, transform 140ms ease;
+		pointer-events: none;
 	}
-	.arcade-mobile-controls__button:active {
-		transform: scale(0.97);
+	.arcade-mobile-dpad__button.is-active,
+	.arcade-mobile-dpad__button:active {
+		opacity: 0.96;
+		transform: scale(0.95);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.3),
+			0 6px 14px rgba(0, 0, 0, 0.28),
+			0 0 0 1px rgba(40, 230, 255, 0.3),
+			0 0 24px rgba(40, 230, 255, 0.24);
 	}
-	.arcade-mobile-controls__button:disabled {
-		opacity: 0.45;
+	.arcade-mobile-dpad__button.is-active::after,
+	.arcade-mobile-dpad__button:active::after {
+		opacity: 1;
+		transform: scale(1);
+	}
+	.arcade-mobile-dpad__button:disabled {
+		opacity: 0.36;
 		cursor: not-allowed;
+		box-shadow: none;
 	}
-	.arcade-mobile-controls__button:nth-child(1) { grid-area: up; }
-	.arcade-mobile-controls__button:nth-child(2) { grid-area: left; }
-	.arcade-mobile-controls__button:nth-child(3) { grid-area: down; }
-	.arcade-mobile-controls__button:nth-child(4) { grid-area: right; }
+	.arcade-mobile-dpad__icon {
+		font-size: clamp(1.3rem, 3.8vw, 1.75rem);
+		font-weight: 900;
+		line-height: 1;
+		text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+	}
+	.arcade-mobile-dpad__button--up { grid-area: up; }
+	.arcade-mobile-dpad__button--left { grid-area: left; }
+	.arcade-mobile-dpad__button--right { grid-area: right; }
+	.arcade-mobile-dpad__button--down { grid-area: down; }
 	.leaderboard-row {
 		grid-template-columns: auto minmax(0, 1fr);
 		grid-template-areas:
@@ -1098,6 +1153,29 @@ a:focus-visible {
 	.leaderboard-row > :nth-child(2) { grid-area: player; }
 	.leaderboard-row > :nth-child(3),
 	.leaderboard-row > :nth-child(4) { grid-area: stats; justify-self: start; }
+}
+
+@media (max-width: 560px) {
+	.arcade-game-layout {
+		padding-bottom: calc(13.2rem + env(safe-area-inset-bottom));
+	}
+	.arcade-mobile-dpad {
+		left: max(0.65rem, env(safe-area-inset-left));
+		bottom: calc(0.85rem + env(safe-area-inset-bottom));
+	}
+}
+
+@media (min-width: 769px) and (max-width: 1180px) and (pointer: coarse) {
+	.arcade-game-layout {
+		padding-bottom: calc(15rem + env(safe-area-inset-bottom));
+	}
+	.arcade-mobile-dpad {
+		left: max(1rem, env(safe-area-inset-left));
+		bottom: calc(1.15rem + env(safe-area-inset-bottom));
+	}
+	.arcade-mobile-dpad {
+		--dpad-button-size: clamp(4.4rem, 7vw, 5rem);
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {

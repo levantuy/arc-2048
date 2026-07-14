@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Board from "./components/Board";
+import MobileDPad from "./components/MobileDPad";
 import {
   initializeGrid,
   moveTiles,
@@ -52,13 +53,6 @@ const HUD_LABELS = {
   wallet: "Player Wallet",
 };
 
-const MOBILE_CONTROLS = [
-  { direction: "up", label: "Up", icon: "^" },
-  { direction: "left", label: "Left", icon: "<" },
-  { direction: "down", label: "Down", icon: "v" },
-  { direction: "right", label: "Right", icon: ">" },
-];
-
 const App = () => {
   const [grid, setGrid] = useState(initializeGrid());
   const [score, setScore] = useState(0);
@@ -82,6 +76,13 @@ const App = () => {
   const [isMobileViewport, setIsMobileViewport] = useState(
     () => window.innerWidth <= MOBILE_BREAKPOINT
   );
+  const [isCoarsePointer, setIsCoarsePointer] = useState(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return false;
+    }
+
+    return window.matchMedia("(pointer: coarse)").matches;
+  });
   const [isMobileHeaderOpen, setIsMobileHeaderOpen] = useState(false);
   const submittedGameIds = useRef(new Set());
   const touchStartX = useRef(null);
@@ -89,6 +90,7 @@ const App = () => {
   const boardTouchAreaRef = useRef(null);
   const gameEnded = gameOver || gameWon;
   const selectedNetwork = getNetworkById(selectedNetworkId) || ARC_NETWORK;
+  const shouldShowTouchControls = isMobileViewport || isCoarsePointer;
 
   // Auto-submit score to leaderboard when game ends (fire-and-forget)
   useEffect(() => {
@@ -159,6 +161,33 @@ const App = () => {
     return () => {
       window.removeEventListener("resize", updateViewportMode);
       window.removeEventListener("orientationchange", updateViewportMode);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(pointer: coarse)");
+    const updatePointerMode = (event) => {
+      setIsCoarsePointer(event.matches);
+    };
+
+    setIsCoarsePointer(mediaQuery.matches);
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", updatePointerMode);
+    } else {
+      mediaQuery.addListener(updatePointerMode);
+    }
+
+    return () => {
+      if (typeof mediaQuery.removeEventListener === "function") {
+        mediaQuery.removeEventListener("change", updatePointerMode);
+      } else {
+        mediaQuery.removeListener(updatePointerMode);
+      }
     };
   }, []);
 
@@ -649,23 +678,6 @@ const App = () => {
                 <Board grid={grid} newTiles={newTiles} mergedTiles={mergedTiles} />
               </div>
 
-              {isMobileViewport && (
-                <div className="arcade-mobile-controls" role="group" aria-label="Move tiles">
-                  {MOBILE_CONTROLS.map((control) => (
-                    <button
-                      key={control.direction}
-                      type="button"
-                      className="arcade-mobile-controls__button"
-                      onClick={() => runMove(control.direction)}
-                      disabled={gameEnded}
-                      aria-label={`Move ${control.label}`}
-                    >
-                      {control.icon}
-                    </button>
-                  ))}
-                </div>
-              )}
-
               <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[var(--arcade-muted)]">
                 <p>
                   Slide the board. Stack the chaos. Try not to let the tiles think they run the place.
@@ -678,6 +690,13 @@ const App = () => {
               <Leaderboard
                 currentAccount={walletAccount}
                 onClose={() => setShowLeaderboard(false)}
+              />
+            )}
+
+            {shouldShowTouchControls && (
+              <MobileDPad
+                onMove={runMove}
+                disabled={gameEnded}
               />
             )}
           </div>
