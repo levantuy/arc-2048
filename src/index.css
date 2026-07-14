@@ -1151,28 +1151,25 @@ a:focus-visible {
 	.arcade-mobile-dpad__button--left { grid-area: left; }
 	.arcade-mobile-dpad__button--right { grid-area: right; }
 	.arcade-mobile-dpad__button--down { grid-area: down; }
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button {
-		transition: transform 140ms ease, opacity 140ms ease, box-shadow 140ms ease;
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__grid {
+		grid-template-columns: var(--dpad-button-size);
+		grid-template-rows: repeat(2, var(--dpad-button-size));
+		grid-template-areas:
+			"top"
+			"bottom";
+		padding: clamp(0.36rem, 1.2vw, 0.55rem);
 	}
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--up,
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--right {
-		transform: translateX(clamp(0.22rem, 0.9vw, 0.5rem));
+	.arcade-mobile-dpad--left.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--left {
+		grid-area: top;
 	}
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--down,
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--left {
-		transform: translateX(clamp(-0.22rem, -0.9vw, -0.5rem));
+	.arcade-mobile-dpad--left.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--down {
+		grid-area: bottom;
 	}
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button.is-active,
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button:active {
-		transform: translateX(var(--dpad-press-offset, 0)) scale(0.95);
+	.arcade-mobile-dpad--right.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--up {
+		grid-area: top;
 	}
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--up,
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--right {
-		--dpad-press-offset: clamp(0.22rem, 0.9vw, 0.5rem);
-	}
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--down,
-	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--left {
-		--dpad-press-offset: clamp(-0.22rem, -0.9vw, -0.5rem);
+	.arcade-mobile-dpad--right.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--right {
+		grid-area: bottom;
 	}
 	.arcade-touch-settings {
 		display: grid;
