@@ -1151,6 +1151,29 @@ a:focus-visible {
 	.arcade-mobile-dpad__button--left { grid-area: left; }
 	.arcade-mobile-dpad__button--right { grid-area: right; }
 	.arcade-mobile-dpad__button--down { grid-area: down; }
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button {
+		transition: transform 140ms ease, opacity 140ms ease, box-shadow 140ms ease;
+	}
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--up,
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--right {
+		transform: translateX(clamp(0.22rem, 0.9vw, 0.5rem));
+	}
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--down,
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--left {
+		transform: translateX(clamp(-0.22rem, -0.9vw, -0.5rem));
+	}
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button.is-active,
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button:active {
+		transform: translateX(var(--dpad-press-offset, 0)) scale(0.95);
+	}
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--up,
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--right {
+		--dpad-press-offset: clamp(0.22rem, 0.9vw, 0.5rem);
+	}
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--down,
+	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__button--left {
+		--dpad-press-offset: clamp(-0.22rem, -0.9vw, -0.5rem);
+	}
 	.arcade-touch-settings {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));

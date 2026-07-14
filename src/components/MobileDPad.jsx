@@ -7,6 +7,11 @@ const D_PAD_DIRECTIONS = [
   { direction: "down", label: "Move Down", icon: "↓", area: "down" },
 ];
 
+const TWO_HANDS_VISIBLE_DIRECTIONS = {
+  left: new Set(["left", "down"]),
+  right: new Set(["up", "right"]),
+};
+
 const HOLD_SPEEDS = {
   fast: { startDelayMs: 120, repeatDelayMs: 72 },
   medium: { startDelayMs: 160, repeatDelayMs: 92 },
@@ -20,7 +25,7 @@ const getDirectionFromPoint = (x, y) => {
   return direction || null;
 };
 
-const MobileDPad = ({ onMove, disabled, side = "left", holdSpeed = "medium" }) => {
+const MobileDPad = ({ onMove, disabled, side = "left", holdSpeed = "medium", twoHandsMode = false }) => {
   const [activeDirection, setActiveDirection] = useState("");
   const activeDirectionRef = useRef("");
   const pointerIdRef = useRef(null);
@@ -28,6 +33,13 @@ const MobileDPad = ({ onMove, disabled, side = "left", holdSpeed = "medium" }) =
   const holdStartTimeoutRef = useRef(null);
   const holdIntervalRef = useRef(null);
   const speedProfile = HOLD_SPEEDS[holdSpeed] || HOLD_SPEEDS.medium;
+  const normalizedSide = side === "right" ? "right" : "left";
+  const visibleDirections = twoHandsMode
+    ? TWO_HANDS_VISIBLE_DIRECTIONS[normalizedSide]
+    : null;
+  const controls = visibleDirections
+    ? D_PAD_DIRECTIONS.filter((control) => visibleDirections.has(control.direction))
+    : D_PAD_DIRECTIONS;
 
   const clearHoldTimers = useCallback(() => {
     if (holdStartTimeoutRef.current) {
@@ -190,7 +202,7 @@ const MobileDPad = ({ onMove, disabled, side = "left", holdSpeed = "medium" }) =
 
   return (
     <div
-      className={`arcade-mobile-dpad arcade-mobile-dpad--${side === "right" ? "right" : "left"}`}
+      className={`arcade-mobile-dpad arcade-mobile-dpad--${normalizedSide}${twoHandsMode ? " arcade-mobile-dpad--two-hands" : ""}`}
       role="group"
       aria-label="Directional controls"
     >
@@ -200,7 +212,7 @@ const MobileDPad = ({ onMove, disabled, side = "left", holdSpeed = "medium" }) =
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
       >
-        {D_PAD_DIRECTIONS.map((control) => {
+        {controls.map((control) => {
           const isActive = activeDirection === control.direction;
 
           return (

@@ -769,6 +769,7 @@ const App = () => {
                     disabled={gameEnded}
                     side="left"
                     holdSpeed={dPadHoldSpeed}
+                    twoHandsMode={normalizedDPadSide === "both"}
                   />
                 )}
                 {(normalizedDPadSide === "right" || normalizedDPadSide === "both") && (
@@ -777,6 +778,7 @@ const App = () => {
                     disabled={gameEnded}
                     side="right"
                     holdSpeed={dPadHoldSpeed}
+                    twoHandsMode={normalizedDPadSide === "both"}
                   />
                 )}
               </>
