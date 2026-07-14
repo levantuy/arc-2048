@@ -1157,7 +1157,7 @@ a:focus-visible {
 		grid-template-areas:
 			"top"
 			"bottom";
-		gap: clamp(0.86rem, 2vw, 1.15rem);
+		gap: clamp(4.3rem, 10vw, 5.75rem);
 		padding: clamp(0.32rem, 1vw, 0.5rem);
 	}
 	.arcade-mobile-dpad--two-hands {
@@ -1219,7 +1219,7 @@ a:focus-visible {
 		bottom: calc(2.1rem + env(safe-area-inset-bottom));
 	}
 	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__grid {
-		gap: clamp(0.82rem, 2.5vw, 1rem);
+		gap: clamp(4.1rem, 12.5vw, 5rem);
 	}
 	.arcade-mobile-dpad--left {
 		left: max(0.65rem, env(safe-area-inset-left));
@@ -1243,7 +1243,7 @@ a:focus-visible {
 		bottom: calc(5rem + env(safe-area-inset-bottom));
 	}
 	.arcade-mobile-dpad--two-hands .arcade-mobile-dpad__grid {
-		gap: clamp(0.95rem, 1.6vw, 1.25rem);
+		gap: clamp(4.75rem, 8vw, 6.25rem);
 	}
 	.arcade-mobile-dpad--left {
 		left: max(1rem, env(safe-area-inset-left));
