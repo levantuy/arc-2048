@@ -56,6 +56,7 @@ const HUD_LABELS = {
 const D_PAD_SIDE_OPTIONS = [
   { value: "left", label: "Left" },
   { value: "right", label: "Right" },
+  { value: "both", label: "Two Hands" },
 ];
 
 const D_PAD_HOLD_SPEED_OPTIONS = [
@@ -108,6 +109,7 @@ const App = () => {
   const gameEnded = gameOver || gameWon;
   const selectedNetwork = getNetworkById(selectedNetworkId) || ARC_NETWORK;
   const shouldShowTouchControls = isMobileViewport || isCoarsePointer;
+  const normalizedDPadSide = dPadSide === "right" || dPadSide === "both" ? dPadSide : "left";
 
   // Auto-submit score to leaderboard when game ends (fire-and-forget)
   useEffect(() => {
@@ -209,8 +211,8 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    globalThis.localStorage?.setItem("dPadSide", dPadSide);
-  }, [dPadSide]);
+    globalThis.localStorage?.setItem("dPadSide", normalizedDPadSide);
+  }, [normalizedDPadSide]);
 
   useEffect(() => {
     globalThis.localStorage?.setItem("dPadHoldSpeed", dPadHoldSpeed);
@@ -719,7 +721,7 @@ const App = () => {
                     <select
                       id="dpad-side-select"
                       className="arcade-select arcade-touch-settings__select"
-                      value={dPadSide}
+                      value={normalizedDPadSide}
                       onChange={(event) => setDPadSide(event.target.value)}
                       aria-label="Choose D-pad side"
                     >
@@ -760,12 +762,24 @@ const App = () => {
             )}
 
             {shouldShowTouchControls && (
-              <MobileDPad
-                onMove={runMove}
-                disabled={gameEnded}
-                side={dPadSide}
-                holdSpeed={dPadHoldSpeed}
-              />
+              <>
+                {(normalizedDPadSide === "left" || normalizedDPadSide === "both") && (
+                  <MobileDPad
+                    onMove={runMove}
+                    disabled={gameEnded}
+                    side="left"
+                    holdSpeed={dPadHoldSpeed}
+                  />
+                )}
+                {(normalizedDPadSide === "right" || normalizedDPadSide === "both") && (
+                  <MobileDPad
+                    onMove={runMove}
+                    disabled={gameEnded}
+                    side="right"
+                    holdSpeed={dPadHoldSpeed}
+                  />
+                )}
+              </>
             )}
           </div>
         )}
