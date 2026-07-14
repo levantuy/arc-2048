@@ -1057,6 +1057,7 @@ a:focus-visible {
 	.arcade-mobile-dpad {
 		--dpad-button-size: clamp(4.1rem, 10.5vw, 4.7rem);
 		--dpad-gap: clamp(0.35rem, 1vw, 0.55rem);
+		display: block;
 		position: fixed;
 		left: max(0.85rem, env(safe-area-inset-left));
 		bottom: calc(1rem + env(safe-area-inset-bottom));
