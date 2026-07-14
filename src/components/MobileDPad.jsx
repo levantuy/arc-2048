@@ -7,8 +7,11 @@ const D_PAD_DIRECTIONS = [
   { direction: "down", label: "Move Down", icon: "↓", area: "down" },
 ];
 
-const HOLD_INITIAL_DELAY_MS = 160;
-const HOLD_REPEAT_DELAY_MS = 92;
+const HOLD_SPEEDS = {
+  fast: { startDelayMs: 120, repeatDelayMs: 72 },
+  medium: { startDelayMs: 160, repeatDelayMs: 92 },
+  slow: { startDelayMs: 220, repeatDelayMs: 124 },
+};
 
 const getDirectionFromPoint = (x, y) => {
   const element = document.elementFromPoint(x, y);
@@ -17,13 +20,14 @@ const getDirectionFromPoint = (x, y) => {
   return direction || null;
 };
 
-const MobileDPad = ({ onMove, disabled }) => {
+const MobileDPad = ({ onMove, disabled, side = "left", holdSpeed = "medium" }) => {
   const [activeDirection, setActiveDirection] = useState("");
   const activeDirectionRef = useRef("");
   const pointerIdRef = useRef(null);
   const touchIdRef = useRef(null);
   const holdStartTimeoutRef = useRef(null);
   const holdIntervalRef = useRef(null);
+  const speedProfile = HOLD_SPEEDS[holdSpeed] || HOLD_SPEEDS.medium;
 
   const clearHoldTimers = useCallback(() => {
     if (holdStartTimeoutRef.current) {
@@ -54,9 +58,9 @@ const MobileDPad = ({ onMove, disabled }) => {
         }
 
         onMove(activeDirectionRef.current);
-      }, HOLD_REPEAT_DELAY_MS);
-    }, HOLD_INITIAL_DELAY_MS);
-  }, [clearHoldTimers, disabled, onMove]);
+      }, speedProfile.repeatDelayMs);
+    }, speedProfile.startDelayMs);
+  }, [clearHoldTimers, disabled, onMove, speedProfile.repeatDelayMs, speedProfile.startDelayMs]);
 
   const pressDirection = useCallback((direction, startRepeat = false) => {
     if (!direction || disabled) {
@@ -185,7 +189,11 @@ const MobileDPad = ({ onMove, disabled }) => {
   useEffect(() => stopPress, [stopPress]);
 
   return (
-    <div className="arcade-mobile-dpad" role="group" aria-label="Directional controls">
+    <div
+      className={`arcade-mobile-dpad arcade-mobile-dpad--${side === "right" ? "right" : "left"}`}
+      role="group"
+      aria-label="Directional controls"
+    >
       <div
         className="arcade-mobile-dpad__grid"
         onTouchMove={handleTouchMove}

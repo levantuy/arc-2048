@@ -53,6 +53,17 @@ const HUD_LABELS = {
   wallet: "Player Wallet",
 };
 
+const D_PAD_SIDE_OPTIONS = [
+  { value: "left", label: "Left" },
+  { value: "right", label: "Right" },
+];
+
+const D_PAD_HOLD_SPEED_OPTIONS = [
+  { value: "fast", label: "Fast" },
+  { value: "medium", label: "Medium" },
+  { value: "slow", label: "Slow" },
+];
+
 const App = () => {
   const [grid, setGrid] = useState(initializeGrid());
   const [score, setScore] = useState(0);
@@ -84,6 +95,12 @@ const App = () => {
     return window.matchMedia("(pointer: coarse)").matches;
   });
   const [isMobileHeaderOpen, setIsMobileHeaderOpen] = useState(false);
+  const [dPadSide, setDPadSide] = useState(
+    () => globalThis.localStorage?.getItem("dPadSide") || "left"
+  );
+  const [dPadHoldSpeed, setDPadHoldSpeed] = useState(
+    () => globalThis.localStorage?.getItem("dPadHoldSpeed") || "medium"
+  );
   const submittedGameIds = useRef(new Set());
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
@@ -190,6 +207,14 @@ const App = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    globalThis.localStorage?.setItem("dPadSide", dPadSide);
+  }, [dPadSide]);
+
+  useEffect(() => {
+    globalThis.localStorage?.setItem("dPadHoldSpeed", dPadHoldSpeed);
+  }, [dPadHoldSpeed]);
 
   useEffect(() => {
     if (!gameStarted) return;
@@ -684,6 +709,47 @@ const App = () => {
                 </p>
                 <p>Game session: {gameSession.gameId.slice(0, 10)}...</p>
               </div>
+
+              {shouldShowTouchControls && (
+                <section className="arcade-touch-settings" aria-label="Touch control settings">
+                  <div className="arcade-touch-settings__item">
+                    <label className="arcade-chip__label" htmlFor="dpad-side-select">
+                      D-Pad Side
+                    </label>
+                    <select
+                      id="dpad-side-select"
+                      className="arcade-select arcade-touch-settings__select"
+                      value={dPadSide}
+                      onChange={(event) => setDPadSide(event.target.value)}
+                      aria-label="Choose D-pad side"
+                    >
+                      {D_PAD_SIDE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="arcade-touch-settings__item">
+                    <label className="arcade-chip__label" htmlFor="dpad-hold-speed-select">
+                      Hold Speed
+                    </label>
+                    <select
+                      id="dpad-hold-speed-select"
+                      className="arcade-select arcade-touch-settings__select"
+                      value={dPadHoldSpeed}
+                      onChange={(event) => setDPadHoldSpeed(event.target.value)}
+                      aria-label="Choose hold speed"
+                    >
+                      {D_PAD_HOLD_SPEED_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </section>
+              )}
             </main>
 
             {showLeaderboard && (
@@ -697,6 +763,8 @@ const App = () => {
               <MobileDPad
                 onMove={runMove}
                 disabled={gameEnded}
+                side={dPadSide}
+                holdSpeed={dPadHoldSpeed}
               />
             )}
           </div>

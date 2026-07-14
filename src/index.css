@@ -1059,10 +1059,17 @@ a:focus-visible {
 		--dpad-gap: clamp(0.35rem, 1vw, 0.55rem);
 		display: block;
 		position: fixed;
-		left: max(0.85rem, env(safe-area-inset-left));
 		bottom: calc(1rem + env(safe-area-inset-bottom));
 		z-index: 34;
 		pointer-events: none;
+	}
+	.arcade-mobile-dpad--left {
+		left: max(0.85rem, env(safe-area-inset-left));
+		right: auto;
+	}
+	.arcade-mobile-dpad--right {
+		right: max(0.85rem, env(safe-area-inset-right));
+		left: auto;
 	}
 	.arcade-mobile-dpad__grid {
 		display: grid;
@@ -1144,6 +1151,27 @@ a:focus-visible {
 	.arcade-mobile-dpad__button--left { grid-area: left; }
 	.arcade-mobile-dpad__button--right { grid-area: right; }
 	.arcade-mobile-dpad__button--down { grid-area: down; }
+	.arcade-touch-settings {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.65rem;
+		padding: 0.72rem;
+		border-radius: 10px;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+	}
+	.arcade-touch-settings__item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.38rem;
+		min-width: 0;
+	}
+	.arcade-touch-settings__select {
+		min-height: 2.35rem;
+		padding: 0.5rem 0.68rem;
+		font-size: 0.8rem;
+		background: linear-gradient(180deg, rgba(12, 20, 42, 0.96), rgba(10, 18, 35, 0.94));
+	}
 	.leaderboard-row {
 		grid-template-columns: auto minmax(0, 1fr);
 		grid-template-areas:
@@ -1161,8 +1189,16 @@ a:focus-visible {
 		padding-bottom: calc(13.2rem + env(safe-area-inset-bottom));
 	}
 	.arcade-mobile-dpad {
-		left: max(0.65rem, env(safe-area-inset-left));
 		bottom: calc(0.85rem + env(safe-area-inset-bottom));
+	}
+	.arcade-mobile-dpad--left {
+		left: max(0.65rem, env(safe-area-inset-left));
+	}
+	.arcade-mobile-dpad--right {
+		right: max(0.65rem, env(safe-area-inset-right));
+	}
+	.arcade-touch-settings {
+		grid-template-columns: 1fr;
 	}
 }
 
@@ -1171,8 +1207,13 @@ a:focus-visible {
 		padding-bottom: calc(15rem + env(safe-area-inset-bottom));
 	}
 	.arcade-mobile-dpad {
-		left: max(1rem, env(safe-area-inset-left));
 		bottom: calc(1.15rem + env(safe-area-inset-bottom));
+	}
+	.arcade-mobile-dpad--left {
+		left: max(1rem, env(safe-area-inset-left));
+	}
+	.arcade-mobile-dpad--right {
+		right: max(1rem, env(safe-area-inset-right));
 	}
 	.arcade-mobile-dpad {
 		--dpad-button-size: clamp(4.4rem, 7vw, 5rem);
