@@ -74,7 +74,7 @@ Các biến môi trường thường dùng:
 - Tên: TuyLv
 - Email: levantuy.it@gmail.com
 - GitHub: https://github.com/levantuy/arc-2048
-- Website: https://2048.learnjournal.site
+- Website: [https://2048.io.vn](https://www.2048.io.vn)
 
 ## License
 
