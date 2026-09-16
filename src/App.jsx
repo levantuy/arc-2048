@@ -30,7 +30,7 @@ import { createGameSession, getGameDurationSeconds } from "./utils/gameSession";
 import { submitScore } from "./api/leaderboard";
 import Leaderboard from "./components/Leaderboard";
 import Footer from "./components/Footer";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from '@vercel/analytics/react'
 
 const MOBILE_BREAKPOINT = 768;
 
