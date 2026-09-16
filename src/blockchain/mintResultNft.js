@@ -3,6 +3,12 @@ import { GAME_2048_RESULT_NFT_ABI } from "./contracts/game2048ResultNft";
 import { getMintContractAddressByChainId, getNetworkById } from "./networks";
 import { getWalletProvider } from "./wallet";
 
+const NO_DATA_ERROR_TEXTS = [
+  "returned no data",
+  "execution reverted",
+  "0x",
+];
+
 const getCurrentWalletChainId = async () => {
   const provider = getWalletProvider();
   const chainHex = await provider.request({ method: "eth_chainId" });
@@ -46,38 +52,98 @@ const toViemChain = (network) =>
     testnet: network.testnet,
   });
 
-const createClients = (network) => {
-  const provider = getWalletProvider();
-  const chain = toViemChain(network);
+const getRpcCandidates = (network) => {
+  const rpcUrls = [network.rpcUrl, ...(network.rpcFallbackUrls || [])].filter(Boolean);
+  return [...new Set(rpcUrls)];
+};
 
-  const publicClient = createPublicClient({
-    chain,
-    transport: http(network.rpcUrl, {
+const createPublicClientForRpc = (network, rpcUrl) =>
+  createPublicClient({
+    chain: toViemChain(network),
+    transport: http(rpcUrl, {
       timeout: 15000,
       retryCount: 1,
     }),
   });
+
+const isLikelyNoDataError = (error) => {
+  const joined = [
+    error?.shortMessage,
+    error?.message,
+    error?.details,
+    error?.cause?.message,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return NO_DATA_ERROR_TEXTS.some((text) => joined.includes(text));
+};
+
+const resolveReadableClient = async (network, address, chainId) => {
+  const rpcCandidates = getRpcCandidates(network);
+  let lastError;
+
+  for (const rpcUrl of rpcCandidates) {
+    const publicClient = createPublicClientForRpc(network, rpcUrl);
+
+    try {
+      const bytecode = await publicClient.getBytecode({ address });
+      if (!bytecode || bytecode === "0x") {
+        lastError = new Error(
+          `Mint contract bytecode was not found at ${address} on chain ${chainId} (${network.name}) via ${rpcUrl}.`
+        );
+        continue;
+      }
+
+      return { publicClient, rpcUrl };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+
+  throw new Error(
+    `No working RPC endpoint was found for chain ${chainId} (${network.name}).`
+  );
+};
+
+const createClients = (network) => {
+  const provider = getWalletProvider();
+  const chain = toViemChain(network);
 
   const walletClient = createWalletClient({
     chain,
     transport: custom(provider),
   });
 
-  return { publicClient, walletClient, chain };
+  return { walletClient, chain };
 };
 
 export const checkGameIdMinted = async (gameId, chainId) => {
   const resolvedChainId = chainId ?? (await getCurrentWalletChainId());
   const network = resolveMintNetwork(resolvedChainId);
   const address = getMintContractAddressByChainId(resolvedChainId);
-  const { publicClient } = createClients(network);
+  const { publicClient, rpcUrl } = await resolveReadableClient(network, address, resolvedChainId);
 
-  return publicClient.readContract({
-    address,
-    abi: GAME_2048_RESULT_NFT_ABI,
-    functionName: "isGameIdMinted",
-    args: [gameId],
-  });
+  try {
+    return await publicClient.readContract({
+      address,
+      abi: GAME_2048_RESULT_NFT_ABI,
+      functionName: "isGameIdMinted",
+      args: [gameId],
+    });
+  } catch (error) {
+    if (isLikelyNoDataError(error)) {
+      throw new Error(
+        `Mint contract call returned no data on chain ${resolvedChainId} (${network.name}) at ${address} via ${rpcUrl}. Verify contract address, chain, and ABI.`
+      );
+    }
+    throw error;
+  }
 };
 
 export const mintResultNft = async ({
@@ -92,7 +158,8 @@ export const mintResultNft = async ({
   const resolvedChainId = chainId ?? (await getCurrentWalletChainId());
   const network = resolveMintNetwork(resolvedChainId);
   const address = getMintContractAddressByChainId(resolvedChainId);
-  const { walletClient, publicClient, chain } = createClients(network);
+  const { walletClient, chain } = createClients(network);
+  const { publicClient } = await resolveReadableClient(network, address, resolvedChainId);
 
   const [connectedAccount] = await walletClient.getAddresses();
   if (!connectedAccount || connectedAccount.toLowerCase() !== account.toLowerCase()) {

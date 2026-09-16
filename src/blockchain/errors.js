@@ -65,6 +65,10 @@ export const toUserFacingMintError = (error) => {
     return "RPC timeout. Please try again.";
   }
 
+  if (hasMessage(error, "returned no data") || hasMessage(error, "bytecode was not found")) {
+    return "Mint contract is not reachable on the selected network. Please verify the network and contract address.";
+  }
+
   const chainMismatchPatterns = [
     "wrong chain selected",
     "wallet_switchethereumchain",

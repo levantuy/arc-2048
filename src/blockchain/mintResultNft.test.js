@@ -43,6 +43,7 @@ describe("mintResultNft multi-network flow", () => {
     });
 
     createPublicClient.mockReturnValue({
+      getBytecode: vi.fn().mockResolvedValue("0x60006000"),
       waitForTransactionReceipt: vi.fn().mockResolvedValue({ logs: [{ data: "0x" }] }),
     });
     parseEventLogs.mockReturnValue([{ args: { tokenId: 7n } }]);
