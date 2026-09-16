@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-09-16T03:44:31.103Z",
+  "networkConfigurationApplied": {
+    "networkName": "Arc Mainnet",
+    "chainId": 5042,
+    "rpcPrimary": "https://rpc.mainnet.arc.io",
+    "rpcFallback": [
+      "https://rpc.blockdaemon.mainnet.arc.io",
+      "https://rpc.drpc.mainnet.arc.io",
+      "https://rpc.quicknode.mainnet.arc.io"
+    ],
+    "wsEndpoint": null,
+    "wsCandidates": [
+      "wss://rpc.blockdaemon.mainnet.arc.io/websocket",
+      "wss://rpc.quicknode.mainnet.arc.io"
+    ],
+    "explorer": "https://explorer.arc.io",
+    "nativeGasTokenSymbol": "USDC"
+  },
+  "preflightResult": {
+    "chainIdActual": 5042,
+    "blockNumber": 21095236,
+    "activeEndpoint": "https://rpc.mainnet.arc.io",
+    "fallbackActivated": false
+  },
+  "connectionErrors": {
+    "rpcErrors": [],
+    "wsErrors": [],
+    "fallbackMechanismActivated": false,
+    "pollingBackoffMs": [
+      1000,
+      2000,
+      4000
+    ]
+  },
+  "realtimeMode": "polling-http",
+  "configurationChanges": {
+    "before": {
+      "chainId": "5042002",
+      "rpcPrimary": "https://rpc.testnet.arc.network",
+      "wsSingle": "wss://rpc.testnet.arc.network"
+    },
+    "after": {
+      "chainId": 5042,
+      "rpcPrimary": "https://rpc.mainnet.arc.io",
+      "rpcFallback": [
+        "https://rpc.blockdaemon.mainnet.arc.io",
+        "https://rpc.drpc.mainnet.arc.io",
+        "https://rpc.quicknode.mainnet.arc.io"
+      ],
+      "wsEndpoints": [
+        "wss://rpc.blockdaemon.mainnet.arc.io/websocket",
+        "wss://rpc.quicknode.mainnet.arc.io"
+      ]
+    },
+    "reasons": [
+      "Enforce ARC Mainnet chainId 5042 for security tasks.",
+      "Use Circle primary RPC with ordered fallback endpoints for resilience.",
+      "Use provider WebSocket endpoints only; do not derive WS from primary mainnet URL.",
+      "Keep credentials outside source code by loading from environment variables."
+    ]
+  },
+  "vulnerabilities": {
+    "collectedByThisRun": false,
+    "summary": null
+  }
+}

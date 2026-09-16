@@ -10,7 +10,8 @@ const require = createRequire(import.meta.url);
 dotenv.config();
 
 const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY;
-const ARC_RPC_URL = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network";
+const ARC_MAINNET_RPC_URL = process.env.ARC_MAINNET_RPC_URL || "https://rpc.mainnet.arc.io";
+const ARC_TESTNET_RPC_URL = process.env.ARC_TESTNET_RPC_URL || process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io";
 const OPTIMISM_SEPOLIA_RPC_URL =
   process.env.OPTIMISM_SEPOLIA_RPC_URL || "https://sepolia.optimism.io";
 const SEPOLIA_RPC_URL =
@@ -45,10 +46,17 @@ const config = defineConfig({
     },
   },
   networks: {
+    arcMainnet: {
+      type: "http",
+      chainType: "l1",
+      url: ARC_MAINNET_RPC_URL,
+      chainId: 5042,
+      accounts,
+    },
     arcTestnet: {
       type: "http",
       chainType: "l1",
-      url: ARC_RPC_URL,
+      url: ARC_TESTNET_RPC_URL,
       chainId: 5042002,
       accounts,
     },

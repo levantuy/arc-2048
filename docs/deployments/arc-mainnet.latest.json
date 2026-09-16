@@ -1,0 +1,11 @@
+{
+  "network": "Arc Mainnet",
+  "hardhatNetwork": "arcMainnet",
+  "chainId": 5042,
+  "blockNumber": 21117086,
+  "deployer": "0xecd06D7a0191f74B9C1Fe007e02eD0B8ef32E866",
+  "contract": "Game2048ResultNFT",
+  "contractAddress": "0xab101fc6021656f9803B1975405fA123CCd5366F",
+  "deploymentTxHash": "0xf01f43ca7979f3b359b9076c517ed66501ff2981c5d50ea80730cc9f45ae2587",
+  "deployedAt": "2026-09-16T06:49:00.951Z"
+}
