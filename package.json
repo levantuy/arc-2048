@@ -31,6 +31,7 @@
     "server": "node server/index.js"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",

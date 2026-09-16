@@ -30,6 +30,7 @@ import { createGameSession, getGameDurationSeconds } from "./utils/gameSession";
 import { submitScore } from "./api/leaderboard";
 import Leaderboard from "./components/Leaderboard";
 import Footer from "./components/Footer";
+import { Analytics } from "@vercel/analytics/next"
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -541,6 +542,7 @@ const App = () => {
 
   return (
     <div className="arcade-shell">
+      <Analytics />
       <div className="arcade-shell__inner">
         {!gameStarted ? (
           <div className="arcade-intro flex flex-col items-center gap-6 text-center">
